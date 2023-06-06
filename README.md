@@ -1,2 +1,2 @@
-# curriculum_for_mr_susuki
+# curriculum_for_mr_suzuki
 インターン向けカリキュラムの解答場所
