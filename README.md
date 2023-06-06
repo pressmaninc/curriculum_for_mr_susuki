@@ -1,0 +1,2 @@
+# curriculum_for_mr_susuki
+インターン向けカリキュラムの解答場所
