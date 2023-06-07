@@ -165,6 +165,7 @@ class Wp10_Sample {
 		wp_enqueue_script( 'wp10_js', $plugin_url . 'assets/js/wp10.js', array(), $plugin_version, true );
 	}
 
+	
 	/**
 	 *
 	 */
