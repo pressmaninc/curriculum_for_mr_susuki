@@ -130,7 +130,6 @@ class Wp10_Sample {
 		return $valid;
 	}
 
-
 	/**
 	 *
 	 */
