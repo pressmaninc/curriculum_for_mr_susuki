@@ -1,0 +1,9 @@
+/* Redesigned by wp10 */
+
+.reviewer .wrap .wp-heading-inline + .page-title-action {
+    display: none;
+}
+.reviewer .wp-has-submenu li:last-of-type,
+.reviewer .wp-has-submenu li:last-of-type {
+    display: none;
+}
