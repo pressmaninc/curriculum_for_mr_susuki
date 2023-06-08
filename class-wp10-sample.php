@@ -74,7 +74,7 @@ class Wp10_Sample {
 		add_filter( 'acf/validate_value/name=book_num', array( $this, 'my_acf_validate_value' ), 10, 4 );
 
 		// 新規追加ボタン消す.
-		//add_action( 'admin_enqueue_scripts', array( $this, 'custom_edit_newpost_delete' ) );
+		// add_action( 'admin_enqueue_scripts', array( $this, 'custom_edit_newpost_delete' ) );
 
 		// 見るリンク消す.
 		add_filter( 'post_row_actions', array( $this, 'custom_action_row' ), 10, 2 );
@@ -159,17 +159,16 @@ class Wp10_Sample {
 	 */
 	public function regist_styles_and_js() {
 		$plugin_version = '1.0'; // Set version number as per requirement e.g 1.0, 1.1 etc.
-		$plugin_url = plugin_dir_url( __FILE__ );
+		$plugin_url     = plugin_dir_url( __FILE__ );
 
 		wp_enqueue_style( 'wp10_style', $plugin_url . 'assets/css/wp10.css', array(), $plugin_version );
 		wp_enqueue_script( 'wp10_js', $plugin_url . 'assets/js/wp10.js', array(), $plugin_version, true );
 	}
 
-	
 	/**
 	 *
 	 */
-	public function add_posts_columns($columns) {
+	public function add_posts_columns( $columns ) {
 		$columns['avelage'] = '平均値';
 
 		return $columns;
@@ -178,7 +177,7 @@ class Wp10_Sample {
 	/**
 	 *
 	 */
-	public function add_posts_columns_row($column_name, $post_id) {
+	public function add_posts_columns_row( $column_name, $post_id ) {
 		if ( 'avelage' == $column_name ) {
 			echo 0;
 		}
