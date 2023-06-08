@@ -273,7 +273,6 @@ class Wp10_Sample {
 	public function set_red( $column_name, $post_id ) {
 		$return_date = get_post_meta( $post_id, 'return_date', true );
 		//echo $post_id;
-		$num=0;
 
 		add_filter(
 			'post_class',
@@ -282,9 +281,6 @@ class Wp10_Sample {
 				return $classes;
 			}
 		);
-
-		$num++;
-		echo $num;
 	}
 
 	/**
