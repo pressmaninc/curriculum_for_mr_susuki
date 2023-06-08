@@ -235,7 +235,6 @@ class Wp10_Sample {
 
 		if ( 'avelage' == $column_name ) {
 
-
 			$arg = array(
 				'post_type'  => 'impression',
 				'meta_query' => array(
@@ -271,7 +270,7 @@ class Wp10_Sample {
 	}
 
 	public function set_red( $column_name, $post_id ) {
-		$return_date = get_post_meta( $post_id, 'return_date', true );
+		//$return_date = get_post_meta( $post_id, 'return_date', true );
 		//echo $post_id;
 
 		add_filter(
