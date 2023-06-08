@@ -7,3 +7,8 @@
 .reviewer .wp-has-submenu li:last-of-type {
     display: none;
 }
+
+table tr.bg-red td {
+    background: pink !important;
+}
+}

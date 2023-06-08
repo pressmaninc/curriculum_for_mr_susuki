@@ -85,11 +85,62 @@ class Wp10_Sample {
 		// Set css and js.
 		add_action( 'admin_enqueue_scripts', array( $this, 'regist_styles_and_js' ) );
 
-		add_filter( 'manage_posts_columns', array( $this, 'add_posts_columns' ) );
-		add_action( 'manage_posts_custom_column', array( $this, 'add_posts_columns_row' ), 10, 2 );
+		//add_filter( 'ac/column/value', array( $this, 'ac_column_value_custom_field_example' ), 10, 3 );
 
+		add_filter( 'manage_books_posts_columns', array( $this, 'add_posts_columns' ) );
+		add_action( 'manage_books_posts_custom_column', array( $this, 'add_posts_columns_row' ), 10, 2 );
+		add_filter( 'manage_edit-books_sortable_columns', array( $this, 'posts_sortable_columns' ) );
+		// add_filter('request', array( $this, 'posts_columns_sort_param' ) );
+
+		add_action('manage_posts_custom_column', array( $this, 'set_red' ), 10, 2);
 	}
 
+
+
+
+
+	/**
+	 * back change
+	 */
+	function ac_column_value_custom_field_example( $value, $id, AC\Column $column ) {
+		if ( $column instanceof AC\Column\CustomField ) {
+
+			// Custom Field Key
+			$meta_key = $column->get_meta_key();
+
+			// Custom Field Type can be 'excerpt|color|date|numeric|image|has_content|link|checkmark|library_id|title_by_id|user_by_id|array|count'. The default is ''.
+			$custom_field_type = $column->get_field_type();
+
+			// if (
+			// 'my_hex_color' === $meta_key
+			// && 'color' === $custom_field_type
+			// ) {
+				//$value = sprintf( '<span style="background-color: red">%1$s</span>', $value );
+			// }
+
+
+		}
+
+		$return_date = get_post_meta( $id, 'return_date', true );
+			//echo 'aaabb';
+
+			add_filter(
+				'post_class',
+				function ( $classes ) {
+					array_push( $classes, 'bg-red' );
+					return $classes;
+				}
+			);
+
+		//echo $value;
+		return $value;
+	}
+
+
+
+	/**
+	 * Acf -> 投稿オブジェクトでデフォルトタイトルが必要になるので、投稿時に合わせてセットする.
+	 */
 	public function custom_auto_title( $post_id ) {
 
 		// 投稿タイプ判別.
@@ -144,6 +195,7 @@ class Wp10_Sample {
 
 	/*
 	 * Add Admin body tag class.
+	 *
 	 */
 	public function wpdocs_admin_classes( $classes ) {
 
@@ -166,22 +218,99 @@ class Wp10_Sample {
 	}
 
 	/**
-	 *
+	 * 　追加カラム：評価平均.
 	 */
 	public function add_posts_columns( $columns ) {
-		$columns['avelage'] = '平均値';
+		$columns['avelage'] = '評価平均';
 
 		return $columns;
 	}
 
 	/**
-	 *
+	 * 追加カラム：評価平均の内容.
 	 */
 	public function add_posts_columns_row( $column_name, $post_id ) {
+
+		//echo $column_name;
+
 		if ( 'avelage' == $column_name ) {
-			echo 0;
+
+
+			$arg = array(
+				'post_type'  => 'impression',
+				'meta_query' => array(
+					array(
+						'key'   => 'impression_target_book',
+						'value' => $post_id,
+					),
+				),
+			);
+
+			$the_query   = new WP_Query( $arg );
+			$post_count  = $the_query->post_count;
+			$total_point = 0;
+
+			if ( $the_query->have_posts() ) :
+				while ( $the_query->have_posts() ) :
+
+					$the_query->the_post();
+					$total_point += get_post_meta( get_the_ID(), 'impression_point', true );
+
+				endwhile;
+			endif;
+
+			if ( $total_point ) {
+				$total_point = round( $total_point / $post_count, 1 );
+				$total_point = number_format( $total_point, 1 );
+			}
+
+			echo $total_point;
+
 		}
+
 	}
+
+	public function set_red( $column_name, $post_id ) {
+		$return_date = get_post_meta( $post_id, 'return_date', true );
+		//echo $post_id;
+		$num=0;
+
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				array_push( $classes, 'bg-red' );
+				return $classes;
+			}
+		);
+
+		$num++;
+		echo $num;
+	}
+
+	/**
+	 * 追加カラム Set Sortable.
+	 */
+	public function posts_sortable_columns( $sortable_column ) {
+		$sortable_column['avelage'] = 'avelage';
+		return $sortable_column;
+	}
+
+	/**
+	 * カスタムフィールドでソートする際のパラメータ
+	 * sortableをセットすれば、それ以降はACが対応するようなので不要だった
+	 */
+	// public function posts_columns_sort_param($vars){
+	// if( isset( $vars['orderby'] ) && 'avelage' === $vars['orderby'] ) {
+	// $vars = array_merge(
+	// $vars,
+	// array(
+	// 'meta_key' => 'avelage',
+	// 'orderby' => 'meta_value', //対象が文字列の場合は「meta_value」を指定
+	// )
+	// );
+	// }
+	// return $vars;
+	// }
 
 	/**
 	 * Menu Set Function.
