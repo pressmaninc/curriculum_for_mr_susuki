@@ -51,20 +51,13 @@ class Wp10_Sample {
 	 * Initializes a new object of the Wp10_Sample class.
 	 */
 	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_menu_page' ), 100 );
+		// Add Menu.
+		// add_action( 'admin_menu', array( $this, 'add_menu_page' ), 100 );
+
+		add_action( 'load-edit.php', array( $this, 'set_red_parent' ) );
 
 		// Title Editor 非表示.
-		add_action(
-			'init',
-			function() {
-				remove_post_type_support( 'books', 'title' );
-				remove_post_type_support( 'books', 'editor' );
-
-				remove_post_type_support( 'impression', 'title' );
-				remove_post_type_support( 'impression', 'editor' );
-			},
-			99
-		);
+		add_action( 'init', array( $this, 'disable_title_and_editor' ), 99 );
 
 		// Set Default title.
 		/* add_filter('wp_insert_post_data', array($this, 'replace_post_data'), '99', 2); */
@@ -73,36 +66,46 @@ class Wp10_Sample {
 		// Custom Validation.
 		add_filter( 'acf/validate_value/name=book_num', array( $this, 'my_acf_validate_value' ), 10, 4 );
 
-		// 新規追加ボタン消す.
+		// 新規追加ボタン消す. load-edit.php
 		// add_action( 'admin_enqueue_scripts', array( $this, 'custom_edit_newpost_delete' ) );
 
-		// 見るリンク消す.
+		// 見るリンク消す and 返却日が過ぎている行に赤背景.
 		add_filter( 'post_row_actions', array( $this, 'custom_action_row' ), 10, 2 );
 
-		// reviewerの時、bodyにclassをセット.
+		// Reviewerの時、bodyにclassをセット.
 		add_filter( 'admin_body_class', array( $this, 'wpdocs_admin_classes' ) );
 
 		// Set css and js.
 		add_action( 'admin_enqueue_scripts', array( $this, 'regist_styles_and_js' ) );
 
-		//add_filter( 'ac/column/value', array( $this, 'ac_column_value_custom_field_example' ), 10, 3 );
+		// add_filter( 'ac/column/value', array( $this, 'ac_column_value_custom_field_example' ), 10, 3 );
 
 		add_filter( 'manage_books_posts_columns', array( $this, 'add_posts_columns' ) );
 		add_action( 'manage_books_posts_custom_column', array( $this, 'add_posts_columns_row' ), 10, 2 );
 		add_filter( 'manage_edit-books_sortable_columns', array( $this, 'posts_sortable_columns' ) );
 		// add_filter('request', array( $this, 'posts_columns_sort_param' ) );
 
-		add_action('manage_posts_custom_column', array( $this, 'set_red' ), 10, 2);
+		// add_filter('post_class', array( $this, 'set_bg_red') );
+
+		// DashBoard Widget.
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
 	}
 
+	/**
+	 *
+	 */
+	public function disable_title_and_editor() {
+		remove_post_type_support( 'books', 'title' );
+		remove_post_type_support( 'books', 'editor' );
 
-
-
+		remove_post_type_support( 'impression', 'title' );
+		remove_post_type_support( 'impression', 'editor' );
+	}
 
 	/**
 	 * back change
 	 */
-	function ac_column_value_custom_field_example( $value, $id, AC\Column $column ) {
+	public function ac_column_value_custom_field_example( $value, $id, AC\Column $column ) {
 		if ( $column instanceof AC\Column\CustomField ) {
 
 			// Custom Field Key
@@ -115,28 +118,14 @@ class Wp10_Sample {
 			// 'my_hex_color' === $meta_key
 			// && 'color' === $custom_field_type
 			// ) {
-				//$value = sprintf( '<span style="background-color: red">%1$s</span>', $value );
+			// $value = sprintf( '<span style="background-color: red">%1$s</span>', $value );
 			// }
-
 
 		}
 
-		$return_date = get_post_meta( $id, 'return_date', true );
-			//echo 'aaabb';
-
-			add_filter(
-				'post_class',
-				function ( $classes ) {
-					array_push( $classes, 'bg-red' );
-					return $classes;
-				}
-			);
-
-		//echo $value;
+		// echo $value;
 		return $value;
 	}
-
-
 
 	/**
 	 * Acf -> 投稿オブジェクトでデフォルトタイトルが必要になるので、投稿時に合わせてセットする.
@@ -185,6 +174,7 @@ class Wp10_Sample {
 	 *
 	 */
 	public function custom_action_row( $actions, $post ) {
+		global $pagenow;
 
 		if ( current_user_can( 'reviewer3' ) ) { // reviewerなら非表示.
 			unset( $actions['view'] ); // プレビュー.
@@ -193,10 +183,43 @@ class Wp10_Sample {
 		return $actions;
 	}
 
-	/*
-	 * Add Admin body tag class.
+	/**
 	 *
 	 */
+
+	public function set_red_parent() {
+		// applog( 'start' );
+		add_filter( 'post_class', array( $this, 'set_red_child' ), 99, 3 );
+	}
+
+	/**
+	 *
+	 */
+	public function set_red_child( $classes, $css_class, $post_id ) {
+
+		if ( get_post_type() === 'books' ) {
+
+			$return_date = get_field( 'return_date', $post_id, false );
+
+			$now = ( new DateTime() )->format( 'Ymd' );
+
+			// applog( $return_date );
+			// applog( $post_id );
+
+			if ( $return_date != '' && $now > $return_date ) {
+
+				array_push( $classes, 'bg-red' );
+
+			}
+		}
+
+		return $classes;
+	}
+
+	/*
+	* Add Admin body tag class.
+	*
+	*/
 	public function wpdocs_admin_classes( $classes ) {
 
 		if ( current_user_can( 'reviewer3' ) ) { // reviewerなら非表示.
@@ -231,7 +254,7 @@ class Wp10_Sample {
 	 */
 	public function add_posts_columns_row( $column_name, $post_id ) {
 
-		//echo $column_name;
+		// echo $column_name;
 
 		if ( 'avelage' == $column_name ) {
 
@@ -258,6 +281,8 @@ class Wp10_Sample {
 				endwhile;
 			endif;
 
+			wp_reset_postdata();
+
 			if ( $total_point ) {
 				$total_point = round( $total_point / $post_count, 1 );
 				$total_point = number_format( $total_point, 1 );
@@ -267,19 +292,6 @@ class Wp10_Sample {
 
 		}
 
-	}
-
-	public function set_red( $column_name, $post_id ) {
-		//$return_date = get_post_meta( $post_id, 'return_date', true );
-		//echo $post_id;
-
-		add_filter(
-			'post_class',
-			function ( $classes ) {
-				array_push( $classes, 'bg-red' );
-				return $classes;
-			}
-		);
 	}
 
 	/**
@@ -306,6 +318,56 @@ class Wp10_Sample {
 	// }
 	// return $vars;
 	// }
+
+	/**
+	 *
+	 */
+	public function add_dashboard_widgets() {
+		wp_add_dashboard_widget(
+			'quick_action_dashboard_widget', // ウィジェットのスラッグ名
+			'返却24h以内の書籍', // ウィジェットに表示するタイトル
+			array( $this, 'dashboard_widget_function' ) // 実行する関数
+		);
+	}
+
+	/**
+	 *
+	 */
+	public function dashboard_widget_function() {
+		$now_date = ( new DateTime() )->setTimezone(new DateTimeZone('Asia/Tokyo'))->format( 'Y-m-d H:i' );
+		$plus_one = ( new DateTime() )->setTimezone(new DateTimeZone('Asia/Tokyo'))->modify( '+1 days' )->format( 'Y-m-d H:i' );
+
+		applog( 't:'. $plus_one );
+
+		$arg = array(
+			'post_type'  => 'books',
+		);
+
+		$the_query = new WP_Query( $arg );
+
+		if ( $the_query->have_posts() ) :
+			while ( $the_query->have_posts() ) :
+
+				$the_query->the_post();
+
+				applog( get_the_ID() );
+				$return_date = get_field( 'return_date' );
+				applog( $return_date );
+
+				if( $return_date >= $now_date && $return_date <= $plus_one ) {
+					//if レビュアーで自分書籍 or Administrator なら {
+					the_title( '<h2>', '</h2>', true );
+				}
+
+			endwhile;
+		endif;
+
+		wp_reset_postdata();
+
+		// echo <<< EOF
+		// 	<p>タイトル</p>
+		// EOF;
+	}
 
 	/**
 	 * Menu Set Function.
