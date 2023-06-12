@@ -32,6 +32,8 @@ class Wp10_Sample {
 	 */
 	private static $instance;
 
+	public $comp_id;
+
 	/**
 	 * Returns a single instance of the class.
 	 *
@@ -54,6 +56,7 @@ class Wp10_Sample {
 		// Add Menu.
 		// add_action( 'admin_menu', array( $this, 'add_menu_page' ), 100 );
 
+		// Postclassに赤背景をセット
 		add_action( 'load-edit.php', array( $this, 'set_red_parent' ) );
 
 		// Title Editor 非表示.
@@ -78,21 +81,114 @@ class Wp10_Sample {
 		// Set css and js.
 		add_action( 'admin_enqueue_scripts', array( $this, 'regist_styles_and_js' ) );
 
-		// add_filter( 'ac/column/value', array( $this, 'ac_column_value_custom_field_example' ), 10, 3 );
-
+		// 感想平均カラム追加
 		add_filter( 'manage_books_posts_columns', array( $this, 'add_posts_columns' ) );
 		add_action( 'manage_books_posts_custom_column', array( $this, 'add_posts_columns_row' ), 10, 2 );
 		add_filter( 'manage_edit-books_sortable_columns', array( $this, 'posts_sortable_columns' ) );
 		// add_filter('request', array( $this, 'posts_columns_sort_param' ) );
 
-		// add_filter('post_class', array( $this, 'set_bg_red') );
-
 		// DashBoard Widget.
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
+
+
+		//add_filter( 'acf/load_field/name=writer', array( $this, 'my_acf_load_field' ) );
+
+		// add_filter( 'acf/load_value/name=publish_company', array( $this, 'my_acf_load_value' ), 10, 3 );
+
+
+
+		add_filter('acf/fields/post_object/result/name=publish_company', array( $this, 'my_acf_fields_post_object_result' ), 10, 4);
+
+		//add_filter('acf/fields/post_object/query/name=writer', array( $this, 'my_acf_fields_post_object_query'), 10, 3);
+
+		add_filter('acf/fields/post_object/query/name=writer', array( $this, 'my_acf_fields_post_object_query' ), 10, 3);
 	}
 
+
+	function my_acf_fields_post_object_query( $args, $field, $post_id ) {
+		applog('aaa' . $this->comp_id);
+		applog(get_field_object('publish_company'));
+
+		// Show 40 posts per AJAX call.
+		//$args['posts_per_page'] = 40;
+
+		// // Restrict results to children of the current post only.
+		// $args['post_parent'] = $post_id;
+
+		//$args['writer_publish'] = 108;
+
+		$args['meta_key'] = 'writer_publish';
+    	$args['meta_value'] = $this->comp_id;
+
+		applog('bbb');
+		applog($args);
+
+		return $args;
+	}
+
+	function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
+		// applog($field);
+		// applog($post_id);
+		applog($post->ID);
+
+		$this->comp_id = $post_id;
+
+		//$text .= ' (' . $post->post_type .  ')';
+
+		//add_filter( 'acf/load_field/name=writer', array( $this, 'my_acf_load_field' ) );
+
+		// $writers = get_field('writer');
+		// applog($writers);
+
+		// delete_field('writer');
+
+		return $text;
+	}
+
+	function my_acf_load_value( $value, $post_id, $field ) {
+		print_r($value);
+		//exit;
+
+		if( is_string($value) ) {
+			$value = str_replace( 'Old Company Name', 'New Company Name',  $value );
+		}
+		return $value;
+	}
+
+
+	function my_acf_load_field( $field ) {
+
+		// echo __FUNCTION__;
+		// applog($field);
+		// applog(get_field_object('publish_company'));
+		//applog($field);
+		//exit;
+
+
+		// $choices = get_field('publish_company', 'books', false);
+
+		// print_r($choices);
+
+		$field['required'] = true;
+		$field['choices'] = array(
+			'custom'    => 'abc',
+			'custom_2'  => 'My Custom Choice 2'
+		);
+
+		return $field;
+	}
+
+	// Apply to all fields.
+	// add_filter('acf/load_field', 'my_acf_load_field');
+
+	// Apply to select fields.
+	// add_filter('acf/load_field/type=select', 'my_acf_load_field');
+
+	// Apply to fields named "custom_select".
+
+
 	/**
-	 *
+	 * 初期Title, Editorを非表示
 	 */
 	public function disable_title_and_editor() {
 		remove_post_type_support( 'books', 'title' );
@@ -100,43 +196,37 @@ class Wp10_Sample {
 
 		remove_post_type_support( 'impression', 'title' );
 		remove_post_type_support( 'impression', 'editor' );
+
+		remove_post_type_support( 'publish_company', 'title' );
+		remove_post_type_support( 'publish_company', 'editor' );
+
+		remove_post_type_support( 'book_writer', 'title' );
+		remove_post_type_support( 'book_writer', 'editor' );
 	}
 
-	/**
-	 * back change
-	 */
-	public function ac_column_value_custom_field_example( $value, $id, AC\Column $column ) {
-		if ( $column instanceof AC\Column\CustomField ) {
-
-			// Custom Field Key
-			$meta_key = $column->get_meta_key();
-
-			// Custom Field Type can be 'excerpt|color|date|numeric|image|has_content|link|checkmark|library_id|title_by_id|user_by_id|array|count'. The default is ''.
-			$custom_field_type = $column->get_field_type();
-
-			// if (
-			// 'my_hex_color' === $meta_key
-			// && 'color' === $custom_field_type
-			// ) {
-			// $value = sprintf( '<span style="background-color: red">%1$s</span>', $value );
-			// }
-
-		}
-
-		// echo $value;
-		return $value;
-	}
 
 	/**
 	 * Acf -> 投稿オブジェクトでデフォルトタイトルが必要になるので、投稿時に合わせてセットする.
 	 */
 	public function custom_auto_title( $post_id ) {
 
+		$post_type = get_post_type( $post_id );
+
+		$post_title_key = '';
+
+		if ( $post_type == 'books' ) {
+			$post_title_key = 'book_title';
+		} elseif ( $post_type == 'publish_company' ) {
+			$post_title_key = 'publish_company';
+		} elseif ( $post_type == 'book_writer' ) {
+			$post_title_key = 'book_writer';
+		}
+
 		// 投稿タイプ判別.
-		if ( get_post_type( $post_id ) == 'books' ) {
+		if ( '' !== $post_title_key ) {
 
 			// get Acf Title.
-			$post_title = get_field( 'book_title', $post_id );
+			$post_title = get_field( $post_title_key, $post_id );
 
 			// サニタイズ処理.
 			$post_name = sanitize_title( $post_title );
@@ -188,7 +278,6 @@ class Wp10_Sample {
 	 */
 
 	public function set_red_parent() {
-		// applog( 'start' );
 		add_filter( 'post_class', array( $this, 'set_red_child' ), 99, 3 );
 	}
 
@@ -320,27 +409,28 @@ class Wp10_Sample {
 	// }
 
 	/**
-	 *
+	 * DashBoard Widget 返却時間24h以内の書籍
 	 */
 	public function add_dashboard_widgets() {
 		wp_add_dashboard_widget(
-			'quick_action_dashboard_widget', // ウィジェットのスラッグ名
+			'return_books_24', // ウィジェットのスラッグ名
 			'返却24h以内の書籍', // ウィジェットに表示するタイトル
-			array( $this, 'dashboard_widget_function' ) // 実行する関数
+			array( $this, 'return_books_24_func' ) // 実行する関数
 		);
 	}
 
 	/**
 	 *
 	 */
-	public function dashboard_widget_function() {
-		$now_date = ( new DateTime() )->setTimezone(new DateTimeZone('Asia/Tokyo'))->format( 'Y-m-d H:i' );
-		$plus_one = ( new DateTime() )->setTimezone(new DateTimeZone('Asia/Tokyo'))->modify( '+1 days' )->format( 'Y-m-d H:i' );
+	public function return_books_24_func() {
+		$now_date = ( new DateTime() )->setTimezone( new DateTimeZone( 'Asia/Tokyo' ) )->format( 'Y-m-d H:i' );
+		$plus_one = ( new DateTime() )->setTimezone( new DateTimeZone( 'Asia/Tokyo' ) )->modify( '+1 days' )->format( 'Y-m-d H:i' );
 
-		applog( 't:'. $plus_one );
+		// applog( 't:' . $plus_one );
+		// applog( 'current:' . get_current_user_id() );
 
 		$arg = array(
-			'post_type'  => 'books',
+			'post_type' => 'books',
 		);
 
 		$the_query = new WP_Query( $arg );
@@ -350,13 +440,17 @@ class Wp10_Sample {
 
 				$the_query->the_post();
 
-				applog( get_the_ID() );
-				$return_date = get_field( 'return_date' );
-				applog( $return_date );
+				// Administrator or レビュアーで自分レンタル書籍 なら.
+				if (
+					current_user_can( 'administrator' ) ||
+					( current_user_can( 'reviewer3' ) && get_field( 'rental_user' ) == get_current_user_id() )
+				) {
 
-				if( $return_date >= $now_date && $return_date <= $plus_one ) {
-					//if レビュアーで自分書籍 or Administrator なら {
-					the_title( '<h2>', '</h2>', true );
+					$return_date = get_field( 'return_date' );
+
+					if ( $return_date >= $now_date && $return_date <= $plus_one ) {
+						the_title( '<h2><a href="' . get_edit_post_link() . '">', '</a></h2>', true );
+					}
 				}
 
 			endwhile;
@@ -364,9 +458,6 @@ class Wp10_Sample {
 
 		wp_reset_postdata();
 
-		// echo <<< EOF
-		// 	<p>タイトル</p>
-		// EOF;
 	}
 
 	/**
