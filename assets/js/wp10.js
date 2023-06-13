@@ -1,5 +1,5 @@
 /**
- * File customize-controls.js.
+ * File wp10.js.
  *
  * Theme Customizer enhancements for a better user experience.
  *
@@ -7,6 +7,37 @@
  */
 
 (function() {
+
+	// Acf js hook version
+	if ( typeof acf !== 'undefined' ) {
+        console.log( 'ACF is defined', acf );
+    }
+
+	acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
+
+		if(args.field.data.name === 'writer') {
+			//const el = acf.getField('key only');
+			const el = acf.getFields({
+				name: 'publish_company'
+				//type: 'post_object'
+			});
+
+			data.company_id = el[0].val();
+			console.log( args );
+		}
+
+		return data;
+
+	});
+
+	// Cookie Version
+	// const elem = document.querySelector('[data-name="publish_company"] select')
+
+	// elem.onchange = function(){
+	// 	//console.log(this.value)
+	// 	document.cookie = 'company_id=' + this.value
+	// }
+
 
 	// wp.customize.bind( 'ready', function() {
 

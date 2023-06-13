@@ -32,8 +32,6 @@ class Wp10_Sample {
 	 */
 	private static $instance;
 
-	public $comp_id;
-
 	/**
 	 * Returns a single instance of the class.
 	 *
@@ -63,7 +61,7 @@ class Wp10_Sample {
 		add_action( 'init', array( $this, 'disable_title_and_editor' ), 99 );
 
 		// Set Default title.
-		/* add_filter('wp_insert_post_data', array($this, 'replace_post_data'), '99', 2); */
+		/* add_filter('wp_insert_post_data', array($this, 'replace_post_data'), 99, 2); */
 		add_action( 'acf/save_post', array( $this, 'custom_auto_title' ), 19 );
 
 		// Custom Validation.
@@ -90,101 +88,105 @@ class Wp10_Sample {
 		// DashBoard Widget.
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
 
+		/* *** 出版社と著者の紐付け 色々 ---------------------- *** */
 
-		//add_filter( 'acf/load_field/name=writer', array( $this, 'my_acf_load_field' ) );
-
+		// Fieldがloadされた時に各種変更できるHook
+		// add_filter( 'acf/load_field/name=writer', array( $this, 'my_acf_load_field' ) );
 		// add_filter( 'acf/load_value/name=publish_company', array( $this, 'my_acf_load_value' ), 10, 3 );
 
+		// Fieldをクリックした時、選択肢リストのajax結果を取得するHook
+		// add_filter( 'acf/fields/post_object/result/name=publish_company', array( $this, 'my_acf_fields_post_object_result' ), 10, 4 );
 
+		// Cookieで取得
+		// add_filter( 'acf/fields/post_object/query/name=writer', array( $this, 'acf_fields_post_object_query_cookie' ), 10, 3 );
 
-		add_filter('acf/fields/post_object/result/name=publish_company', array( $this, 'my_acf_fields_post_object_result' ), 10, 4);
+		// Acf js hookで取得
+		add_filter( 'acf/fields/post_object/query/name=writer', array( $this, 'acf_fields_post_object_query_js' ), 10, 3 );
 
-		//add_filter('acf/fields/post_object/query/name=writer', array( $this, 'my_acf_fields_post_object_query'), 10, 3);
-
-		add_filter('acf/fields/post_object/query/name=writer', array( $this, 'my_acf_fields_post_object_query' ), 10, 3);
+		/* *** 出版社と著者の紐付け 色々 END ---------------------- *** */
 	}
 
+	/**
+	 * Get choiced publish ID by js post.
+	 */
+	public function acf_fields_post_object_query_js( $args, $field, $post_id ) {
+		$company_id = filter_input( INPUT_POST, 'company_id', FILTER_SANITIZE_NUMBER_INT );
 
-	function my_acf_fields_post_object_query( $args, $field, $post_id ) {
-		applog('aaa' . $this->comp_id);
-		applog(get_field_object('publish_company'));
+		if ( $company_id !== '' ) {
+			$args['meta_key']   = 'writer_publish';
+			$args['meta_value'] = $company_id;
+		}
 
-		// Show 40 posts per AJAX call.
-		//$args['posts_per_page'] = 40;
-
-		// // Restrict results to children of the current post only.
-		// $args['post_parent'] = $post_id;
-
-		//$args['writer_publish'] = 108;
-
-		$args['meta_key'] = 'writer_publish';
-    	$args['meta_value'] = $this->comp_id;
-
-		applog('bbb');
-		applog($args);
+		applog( $company_id );
 
 		return $args;
 	}
 
-	function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
+	/**
+	 * Get choiced publish ID by cookie.
+	 */
+	public function acf_fields_post_object_query_cookie( $args, $field, $post_id ) {
+		// applog( get_field_object( 'publish_company' ) );
+
+		// Set for WP_Query
+		if ( isset( $_COOKIE['company_id'] ) ) {
+			$args['meta_key']   = 'writer_publish';
+			$args['meta_value'] = $_COOKIE['company_id'];
+
+			setcookie( 'company_id', '', time() - 30 ); //cookie delete.
+		}
+
+		applog( 'bbb' );
+		applog( $args );
+
+		return $args;
+	}
+
+	/**
+	 * 未使用.
+	 */
+	public function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
 		// applog($field);
 		// applog($post_id);
-		applog($post->ID);
+		applog( $post->ID );
 
-		$this->comp_id = $post_id;
-
-		//$text .= ' (' . $post->post_type .  ')';
-
-		//add_filter( 'acf/load_field/name=writer', array( $this, 'my_acf_load_field' ) );
-
-		// $writers = get_field('writer');
-		// applog($writers);
+		// $text .= ' (' . $post->post_type .  ')';
 
 		// delete_field('writer');
 
 		return $text;
 	}
 
-	function my_acf_load_value( $value, $post_id, $field ) {
-		print_r($value);
-		//exit;
+	/**
+	 * 未使用.
+	 */
+	public function my_acf_load_value( $value, $post_id, $field ) {
+		// print_r( $value );
+		// exit;
 
-		if( is_string($value) ) {
-			$value = str_replace( 'Old Company Name', 'New Company Name',  $value );
+		if ( is_string( $value ) ) {
+			$value = str_replace( 'Old Company Name', 'New Company Name', $value );
 		}
 		return $value;
 	}
 
 
-	function my_acf_load_field( $field ) {
-
-		// echo __FUNCTION__;
-		// applog($field);
-		// applog(get_field_object('publish_company'));
-		//applog($field);
-		//exit;
-
+	/**
+	 * 未使用.
+	 */
+	public function my_acf_load_field( $field ) {
 
 		// $choices = get_field('publish_company', 'books', false);
-
 		// print_r($choices);
 
 		$field['required'] = true;
-		$field['choices'] = array(
-			'custom'    => 'abc',
-			'custom_2'  => 'My Custom Choice 2'
+		$field['choices']  = array(
+			'custom'   => 'abc',
+			'custom_2' => 'My Custom Choice 2',
 		);
 
 		return $field;
 	}
-
-	// Apply to all fields.
-	// add_filter('acf/load_field', 'my_acf_load_field');
-
-	// Apply to select fields.
-	// add_filter('acf/load_field/type=select', 'my_acf_load_field');
-
-	// Apply to fields named "custom_select".
 
 
 	/**
