@@ -11,24 +11,24 @@
 	// Acf js hook version
 	if ( typeof acf !== 'undefined' ) {
         console.log( 'ACF is defined', acf );
-    }
 
-	acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
+		acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
 
-		if(args.field.data.name === 'writer') {
-			//const el = acf.getField('key only');
-			const el = acf.getFields({
-				name: 'publish_company'
-				//type: 'post_object'
-			});
+			if(args.field.data.name === 'writer') {
+				//const el = acf.getField('key only');
+				const el = acf.getFields({
+					name: 'publish_company'
+					//type: 'post_object'
+				});
 
-			data.company_id = el[0].val();
-			console.log( args );
-		}
+				data.company_id = el[0].val();
+				console.log( args );
+			}
 
-		return data;
+			return data;
 
-	});
+		});
+	}
 
 	// Cookie Version
 	// const elem = document.querySelector('[data-name="publish_company"] select')

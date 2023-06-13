@@ -104,6 +104,29 @@ class Wp10_Sample {
 		add_filter( 'acf/fields/post_object/query/name=writer', array( $this, 'acf_fields_post_object_query_js' ), 10, 3 );
 
 		/* *** 出版社と著者の紐付け 色々 END ---------------------- *** */
+
+		$to = "hoge@localhost.local";
+		$subject = "テストメール";
+		$body = "こんにちは。テストメールです。";
+		$headers = "From: from@example.com";
+		mb_send_mail( $to, $subject, $body, $headers );
+
+		//phpinfo();
+		//exit;
+	}
+
+	public function to_mail() {
+		// wp_mail(
+		// 	"hiroomi_suzuki@pressman.ne.jp",
+		// 	"届きましたか？",
+		// 	"このメールが見れたなら設定は完ぺき！"
+		// );
+
+		$to = "hoge@localhost.local";
+		$subject = "テストメール";
+		$body = "こんにちは。テストメールです。";
+		$headers = "From: from@example.com";
+		mb_send_mail($to,$subject,$body,$headers);
 	}
 
 	/**
