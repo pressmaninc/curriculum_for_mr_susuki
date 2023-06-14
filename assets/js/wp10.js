@@ -25,26 +25,27 @@
 
 		//console.log(writerFields[0]);
 
-		// Publish Field onChange
-		publishFields[0].$el.on('change', () => {
-			//console.log('aaa')
-			writerFields[0].select2.$el.val(null).trigger('change') //select2仕様 指定select2のvalをnullにする
-		})
+		if(publishFields.length && writerFields.length) {
 
-		// select2 Click時のajax Post送信. php->post_object/query Hookの前に動く
-		// publish Fieldの値を送信
-		acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
+			// Publish Field onChange
+			publishFields[0].$el.on('change', () => {
+				//select2仕様 指定select2のvalをnullにする
+				writerFields[0].select2.$el.val(null).trigger('change')
+			})
 
-			if(args.field.data.name === 'writer') {
+			// select2 Click時のajax Post送信. php->post_object/query Hookの前に動く
+			// publish Fieldの値を送信
+			acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
 
-				data.company_id = publishFields[0].val();
-				//console.log( args );
+				if(args.field.data.name === 'writer') {
+					data.company_id = publishFields[0].val();
+				}
 
-			}
+				return data;
 
-			return data;
+			});
 
-		});
+		} //if length
 	}
 
 	// Cookie Version

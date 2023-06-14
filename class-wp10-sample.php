@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once dirname( __FILE__ ) . '/class-acf-definition.php';
+
 /**
  * Class Wp10_Sample
  *
@@ -51,6 +53,7 @@ class Wp10_Sample {
 	 * Initializes a new object of the Wp10_Sample class.
 	 */
 	public function __construct() {
+
 		// Add Menu.
 		// add_action( 'admin_menu', array( $this, 'add_menu_page' ), 100 );
 
@@ -104,6 +107,8 @@ class Wp10_Sample {
 		add_filter( 'acf/fields/post_object/query/name=writer', array( $this, 'acf_fields_post_object_query_js' ), 10, 3 );
 
 		/* *** 出版社と著者の紐付け 色々 END ---------------------- *** */
+
+
 	}
 
 	/**
@@ -148,9 +153,9 @@ class Wp10_Sample {
 	public function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
 		// applog($field);
 		// applog($post_id);
-		//applog( $text );
+		// applog( $text );
 
-		//$text .= ' (' . $post->post_type . ')';
+		// $text .= ' (' . $post->post_type . ')';
 
 		// delete_field('writer');
 
@@ -204,6 +209,7 @@ class Wp10_Sample {
 
 		remove_post_type_support( 'book_writer', 'title' );
 		remove_post_type_support( 'book_writer', 'editor' );
+
 	}
 
 
@@ -326,9 +332,18 @@ class Wp10_Sample {
 	public function regist_styles_and_js() {
 		$plugin_version = '1.0'; // Set version number as per requirement e.g 1.0, 1.1 etc.
 		$plugin_url     = plugin_dir_url( __FILE__ );
+		$post_type      = get_post_type();
 
 		wp_enqueue_style( 'wp10_style', $plugin_url . 'assets/css/wp10.css', array(), $plugin_version );
-		wp_enqueue_script( 'wp10_js', $plugin_url . 'assets/js/wp10.js', array(), $plugin_version, true );
+
+		if (
+			$post_type == 'books' ||
+			$post_type == 'impression' ||
+			$post_type == 'publish_company' ||
+			$post_type == 'book_writer'
+		) {
+			wp_enqueue_script( 'wp10_js', $plugin_url . 'assets/js/wp10.js', array(), $plugin_version, true );
+		}
 	}
 
 	/**
@@ -485,8 +500,9 @@ class Wp10_Sample {
 
 }
 
-
+Wp10_Acf_Definition::get_instance();
 Wp10_Sample::get_instance();
+
 
 /**
  * 有効化時に一度だけreviewerのroleを設定
