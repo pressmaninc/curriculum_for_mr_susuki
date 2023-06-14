@@ -95,7 +95,7 @@ class Wp10_Sample {
 		// add_filter( 'acf/load_value/name=publish_company', array( $this, 'my_acf_load_value' ), 10, 3 );
 
 		// Fieldをクリックした時、選択肢リストのajax結果を取得するHook
-		// add_filter( 'acf/fields/post_object/result/name=publish_company', array( $this, 'my_acf_fields_post_object_result' ), 10, 4 );
+		// add_filter( 'acf/fields/post_object/result/name=writer', array( $this, 'my_acf_fields_post_object_result' ), 10, 4 );
 
 		// Cookieで取得
 		// add_filter( 'acf/fields/post_object/query/name=writer', array( $this, 'acf_fields_post_object_query_cookie' ), 10, 3 );
@@ -133,7 +133,7 @@ class Wp10_Sample {
 			$args['meta_key']   = 'writer_publish';
 			$args['meta_value'] = $_COOKIE['company_id'];
 
-			setcookie( 'company_id', '', time() - 30 ); //cookie delete.
+			setcookie( 'company_id', '', time() - 30 ); // cookie delete.
 		}
 
 		applog( 'bbb' );
@@ -148,9 +148,9 @@ class Wp10_Sample {
 	public function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
 		// applog($field);
 		// applog($post_id);
-		applog( $post->ID );
+		//applog( $text );
 
-		// $text .= ' (' . $post->post_type .  ')';
+		//$text .= ' (' . $post->post_type . ')';
 
 		// delete_field('writer');
 
@@ -255,7 +255,7 @@ class Wp10_Sample {
 		}
 
 		// 半角英数字 Check.
-		if ( ! preg_match( '/^[a-zA-Z0-9]+$/', $value ) ) {
+		if ( $value !== '' && ! preg_match( '/^[a-zA-Z0-9]+$/', $value ) ) {
 			return __( '半角英数字のみで入力して下さい。' );
 		}
 

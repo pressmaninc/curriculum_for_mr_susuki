@@ -11,24 +11,41 @@
 	// Acf js hook version
 	if ( typeof acf !== 'undefined' ) {
         console.log( 'ACF is defined', acf );
-    }
 
-	acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
+		//出版社Field
+		const publishFields = acf.getFields({
+			name: 'publish_company',
+			//type: 'post_object'
+		});
 
-		if(args.field.data.name === 'writer') {
-			//const el = acf.getField('key only');
-			const el = acf.getFields({
-				name: 'publish_company'
-				//type: 'post_object'
-			});
+		//著者Field
+		const writerFields = acf.getFields({
+			name: 'writer'
+		});
 
-			data.company_id = el[0].val();
-			console.log( args );
-		}
+		//console.log(writerFields[0]);
 
-		return data;
+		// Publish Field onChange
+		publishFields[0].$el.on('change', () => {
+			//console.log('aaa')
+			writerFields[0].select2.$el.val(null).trigger('change') //select2仕様 指定select2のvalをnullにする
+		})
 
-	});
+		// select2 Click時のajax Post送信. php->post_object/query Hookの前に動く
+		// publish Fieldの値を送信
+		acf.add_filter('select2_ajax_data', function( data, args, $input, field, instance ){
+
+			if(args.field.data.name === 'writer') {
+
+				data.company_id = publishFields[0].val();
+				//console.log( args );
+
+			}
+
+			return data;
+
+		});
+	}
 
 	// Cookie Version
 	// const elem = document.querySelector('[data-name="publish_company"] select')
@@ -39,6 +56,7 @@
 	// }
 
 
+	// ORG ---
 	// wp.customize.bind( 'ready', function() {
 
 	// 	// Only show the color hue control when there's a custom primary color.
