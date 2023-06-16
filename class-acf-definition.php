@@ -46,8 +46,6 @@ class Wp10_Acf_Definition {
 	 * Initializes a new object of the Wp10_Sample class.
 	 */
 	public function __construct() {
-		// echo 'aaa';
-		// exit;
 
 		add_action( 'acf/include_fields', array( $this, 'acf_set_include_field' ) );
 

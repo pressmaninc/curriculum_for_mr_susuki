@@ -108,7 +108,53 @@ class Wp10_Sample {
 
 		/* *** 出版社と著者の紐付け 色々 END ---------------------- *** */
 
+		// Json Sync Acf.
+		add_filter( 'acf/settings/save_json', array( $this, 'acf_json_save_point' ) );
+		add_filter( 'acf/settings/load_json', array( $this, 'acf_json_load_point' ) );
 
+		// Json Sync Acp.
+		add_filter( 'acp/storage/file/directory', array( $this, 'acp_json_directory' ) );
+		add_filter( 'acp/storage/file/directory/writable', '__return_false' );
+
+		// $to = "to@example.com";
+		// $subject = "TEST";
+		// $message = "This is TEST";
+		// $headers = "From: admin@example.com";
+		// mb_send_mail($to, $subject, $message, $headers);
+	}
+
+	/**
+	 *
+	 */
+	public function acf_json_save_point( $path ) {
+
+		// update path
+		$path = dirname( __FILE__ ) . '/json/acf';
+
+		return $path;
+
+	}
+
+	/**
+	 *
+	 */
+	public function acf_json_load_point( $paths ) {
+
+		// remove original path (optional)
+		unset( $paths[0] );
+
+		// append path
+		$paths[] = dirname( __FILE__ ) . '/json/acf';
+
+		return $paths;
+
+	}
+
+	/**
+	 *
+	 */
+	public function acp_json_directory() {
+		return dirname( __FILE__ ) . '/json/acp';
 	}
 
 	/**
@@ -334,14 +380,13 @@ class Wp10_Sample {
 		$plugin_url     = plugin_dir_url( __FILE__ );
 		$post_type      = get_post_type();
 
-		wp_enqueue_style( 'wp10_style', $plugin_url . 'assets/css/wp10.css', array(), $plugin_version );
-
 		if (
 			$post_type == 'books' ||
 			$post_type == 'impression' ||
 			$post_type == 'publish_company' ||
 			$post_type == 'book_writer'
 		) {
+			wp_enqueue_style( 'wp10_style', $plugin_url . 'assets/css/wp10.css', array(), $plugin_version );
 			wp_enqueue_script( 'wp10_js', $plugin_url . 'assets/js/wp10.js', array(), $plugin_version, true );
 		}
 	}
